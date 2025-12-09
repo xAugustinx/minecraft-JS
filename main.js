@@ -12,6 +12,7 @@ var punktStartuTrawy = 6;
 var xRenderowania = 0;
 
 var xGracza = 4;
+var yGracza;
 
 function zrespBlok(source)
 {
@@ -24,16 +25,9 @@ function zrespBlok(source)
     nE.style.position = 'absolute';
     nE.style.imageRendering = 'pixelated';
 
-    
-
-    //if (blokiObracalne.includes(source))
-    //{
-    //    nE.style.transform = 'rotate(' + (Math.floor(Math.random() * 4) * 90) + 'deg)';
-    //}
 
     nE.style.width = '10%'
     nE.style.height = '10%'
-
 
     return nE;
 }
@@ -43,6 +37,17 @@ function divBlokiNaZero()
     const mango = document.getElementById('bloki');
     mango.innerHTML = '';
 }
+
+function upadek()
+{
+    if (bloki[yGracza][xGracza] == -1)
+    {
+        yGracza++;
+        return true;
+    }
+    else { return false;}
+}
+
 
 
 function dodawanieDoDivaBlokow(mango, xBottom, xRight)
@@ -74,7 +79,7 @@ function generowanieSwiata()
     if (punktStartuTrawy > 8) {punktStartuTrawy = 7;}
     else if (punktStartuTrawy < 4 ) { punktStartuTrawy = 3; }
 
-    console.log(punktStartuTrawy);
+    poczotekYGracza = punktStartuTrawy;
 
     var punktStone = punktStartuTrawy + 2 + Math.floor(Math.random() * 3);
 
@@ -91,18 +96,13 @@ function generowanieSwiata()
 
             if (losowaWartosc > 97) {bloki[i][xRenderowania] = zrespBlok('txt/coal.png');   }
             else {bloki[i][xRenderowania] = zrespBlok('txt/stone.png');}
-
-             
         }
         else
         {
             bloki[i][xRenderowania] = zrespBlok('txt/dirt.png');
-        }
-
-        
+        } 
     }
     xRenderowania++;
-    
 }
 
 function renderowanie()
@@ -121,20 +121,61 @@ function renderowanie()
         }
     }
 
+    const gracz = document.getElementById('gracz');
+
+    gracz.style.bottom = (yGracza * -1 +10) * 10 + '%';
+    gracz.style.left = '40%';
+
 }
 
 document.addEventListener('keydown', klawiszKlikniety);
 
+
+
 function klawiszKlikniety()
 {
-    if (event.key === 'a') { xGracza--; }
-    else if (event.key === 'd') { xGracza++; }
+
+    if (event.key === 'a' && xGracza > 4) 
+    { 
+        if (bloki[yGracza-1][xGracza -1] == -1)
+        {
+            xGracza--;    
+        }
+    }
+    else if (event.key === 'd') 
+    {
+        if (bloki[yGracza-1][xGracza +1] == -1)
+        {
+            xGracza++;    
+        }
+    }
+    else if (event.key === 'w') { console.log('skok'); }
+
+
+    if (upadek()) {console.log('upadek'); }
+
+    for (var i = 0; i < 10; i++) {
+
+    }
+
+
 
     generowanieSwiata();
     renderowanie();
 }
 
-for (var meow = 0; meow < 10; meow++) {generowanieSwiata();}
+
+//poStarcie
+for (var meow = 0; meow < 10; meow++) {
+    generowanieSwiata(); 
+    //console.log('Start trawy ' + meow + ': ' + punktStartuTrawy);
+    if (meow === 4) 
+    {
+        yGracza = punktStartuTrawy;
+    }
+}
 renderowanie();
+
+
 
 
