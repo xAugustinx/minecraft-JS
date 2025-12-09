@@ -1,7 +1,7 @@
 var bloki = [];
 
 
-const blokiObracalne = ['txt/dirt.png','txt/stone.png'];
+const blokiObracalne = ['txt/dirt.png'];
 
 for (let y = 0; y < 10; y++) {
     bloki[y] = []; 
@@ -25,9 +25,18 @@ function zrespBlok(source)
     nE.style.position = 'absolute';
     nE.style.imageRendering = 'pixelated';
 
-
     nE.style.width = '10%'
     nE.style.height = '10%'
+
+    var czyObracalny = false;
+
+    for (var i = 0; i < blokiObracalne.length; i++)
+    {
+        if (source == blokiObracalne[i]) 
+        {
+            nE.style.transform = 'rotate(' + (Math.floor(Math.random() * 4) * 90) + 'deg)';
+        }
+    }        
 
     return nE;
 }
@@ -131,34 +140,26 @@ function renderowanie()
 document.addEventListener('keydown', klawiszKlikniety);
 
 
-
 function klawiszKlikniety()
 {
 
-    if (event.key === 'a' && xGracza > 4) 
+    if (event.key == 'a') 
     { 
-        if (bloki[yGracza-1][xGracza -1] == -1)
-        {
-            xGracza--;    
-        }
+        if (bloki[yGracza-1][xGracza -1] == -1 && bloki[yGracza-2][xGracza -1] == -1) {xGracza--;}
     }
-    else if (event.key === 'd') 
+    else if (event.key == 'd') 
     {
-        if (bloki[yGracza-1][xGracza +1] == -1)
-        {
-            xGracza++;    
-        }
+        if (bloki[yGracza-1][xGracza +1] == -1 && bloki[yGracza-2][xGracza +1] == -1) {xGracza++;}
     }
-    else if (event.key === 'w') { console.log('skok'); }
-
-
-    if (upadek()) {console.log('upadek'); }
+    else if (event.key == 'w') 
+    {
+        console.log('Skok!');
+        setTimeout(() => {yGracza--; renderowanie();}, 500);
+    }
 
     for (var i = 0; i < 10; i++) {
-
+        if (!upadek()) {break;}
     }
-
-
 
     generowanieSwiata();
     renderowanie();
@@ -174,6 +175,14 @@ for (var meow = 0; meow < 10; meow++) {
         yGracza = punktStartuTrawy;
     }
 }
+
+//worldBorder
+for (var y = 0; y < 10; y++) 
+{
+    bloki[y][3] = zrespBlok('txt/bedrock.png');
+}
+
+
 renderowanie();
 
 
