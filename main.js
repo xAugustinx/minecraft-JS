@@ -1,7 +1,23 @@
 var bloki = [];
 
+var activeJump = false;
+
+var zaczecieKopania = false;
 
 var aktualneBloki = [];
+
+class ekwipunek
+{
+    constructor()
+    {
+        this.dirt = 0;
+        this.grass = 0;
+        this.stone = 0;
+        this.coal = 0;
+    }
+}
+
+var eq = new ekwipunek();
 
 
 const blokiObracalne = ['txt/dirt.png'];
@@ -17,10 +33,9 @@ var xRenderowania = 0;
 var xGracza = 4;
 var yGracza;
 
-
+const obiektPointer = document.getElementById('pointer');
 var pointerX = 0;
 var pointerY = 0;
-
 
 
 function zrespBlok(source, y, x)
@@ -101,8 +116,8 @@ function usuwaniePointera()
     var myPointer = document.getElementById('pointer');
     myPointer.style.visibility = 'hidden';
 
-    xPointer = 4;
-    yPointer = yGracza;
+    xPointer = 5;
+    yPointer = yGracza-1;
 }
 
 
@@ -163,38 +178,38 @@ function renderowanie()
 
 }
 
-function upadek()
+document.addEventListener('keydown', klawiszKlikniety);
+
+
+function upadek(mango)
 {
-    var mango = Math.round(yGracza);
-
-    if (mango == yGracza)
-    {
-        yGracza = Math.round(yGracza);
-    }
-
-    console.log(yGracza);
+    var sumerZmienna = 0;
+    if (mango === undefined) {sumerZmienna = 0;}
+    else {sumerZmienna = mango;}
+    
+    yGracza = Math.round(yGracza);
+    
 
     if (bloki[yGracza][xGracza] == -1)
     {
-        yGracza++;
-        return true;
+        for (var i = 0; i < 10; i++)                                                    //
+        {                                                                              //
+            setTimeout(() => { yGracza  = yGracza + 0.10; renderowanie();}, i * 10);    // czemu ten fragment crushuje strone
+        }                                                                                //  
+        setTimeout(() => {yGracza = Math.round(yGracza); return true;}, 10 * 10);
     }
     else { return false;}
 }
 
-function upadek2()
+function czyBlokGraniczyZPowietrzem(y,x)
 {
-    if (bloki[Math.round(yGracza)][xGracza] == -1)
-    {
-        return true;
-    }
-    else { return false;}
+    if (bloki[y+1][x] == -1 || bloki[y-1][x] == -1 || bloki[y][x+1] == -1 || bloki[y][x-1] == -1){return true;}
+    return false;
 }
-
-document.addEventListener('keydown', klawiszKlikniety);
 
 function klawiszKlikniety()
 {
+
     if (Math.floor(yGracza) != yGracza)
     {
         yGracz = Math.floor(yGracza) -1;
@@ -205,72 +220,82 @@ function klawiszKlikniety()
 
     if (event.key == 'a')  {  if (bloki[yGracza-1][xGracza -1] == -1 && bloki[yGracza-2][xGracza -1] == -1) {xGracza--;} usuwaniePointera();}
     else if (event.key == 'd')  { if (bloki[yGracza-1][xGracza +1] == -1 && bloki[yGracza-2][xGracza +1] == -1) {xGracza++;} usuwaniePointera(); }
-    else if (event.key == 'w') 
+    else if (event.key == 'w' && activeJump == false) 
     {
         usuwaniePointera();
 
-        console.log('Skok!');
-        for (var i = 0; i < 10; i++) 
+        activeJump = true;
+        setTimeout(() => { activeJump = false; renderowanie();}, 11 * 30 + 10 * 10)
+
+        for (var i = 0; i < 11; i++) 
         {
             setTimeout(() => { yGracza  = yGracza - 0.10; renderowanie();}, i * 30);
         }
         
-        if (upadek2())
-        {
-            for (var i = 0; i < 10; i++) 
-            {
-                setTimeout(() => { yGracza  = yGracza + 0.10; renderowanie();}, i * 30 + 150);
-            }
-        }    
+        yGracza = Math.round(yGracza);
+
+        setTimeout(() => {upadek(); renderowanie()}, 500);
     }
 
     else if (event.key ==  'ArrowLeft')
     {
-        xPointer++;
+        if (xPointer < 9 && obiektPointer.style.visibility !== 'hidden' ) {xPointer++;}
         zmienianiePozycjiPointera(yPointer, xPointer);
     }
     else if (event.key == 'ArrowRight')
     {
-        xPointer--;
+        if (xPointer > 0 && obiektPointer.style.visibility !== 'hidden') {xPointer--;}
         zmienianiePozycjiPointera(yPointer, xPointer);
     }
     else if (event.key == 'ArrowUp')
     {
-        yPointer--;
+        if (yPointer > 0 && obiektPointer.style.visibility !== 'hidden') {yPointer--;} 
         zmienianiePozycjiPointera(yPointer, xPointer);
     }
     else if (event.key == 'ArrowDown')
     {
-        yPointer++;
+        if (yPointer < 9 && obiektPointer.style.visibility !== 'hidden') {yPointer++;}
         zmienianiePozycjiPointera(yPointer, xPointer);
     }
-    else if (event.key == 'Enter')
+    else if (event.key == 'Enter' && czyBlokGraniczyZPowietrzem(yPointer,(xPointer * -1) + 9 + xGracza -4) )
     {
-        console.log('Umieszczanie bloku na pozycji: ' + yPointer + ', ' + ((xPointer * -1) + 9));
-        bloki[yPointer][(xPointer * -1) + 9 + xGracza -4 ] = zrespBlok('txt/dirt.png');
+        if (bloki[yPointer][(xPointer * -1) + 9 + xGracza -4 ] == -1)
+        {
+            bloki[yPointer][(xPointer * -1) + 9 + xGracza -4 ] = zrespBlok('txt/dirt.png');
+        }
+        else if (zaczecieKopania == false)
+        {
+            zaczecieKopania = true;
+
+            var czasOczekiwania = 0;
+            
+            console.log(bloki[yPointer][(xPointer * -1) + 9 + xGracza -4 ].style.backgroundImage);
+
+            if (bloki[yPointer][(xPointer * -1) + 9 + xGracza -4 ].style.backgroundImage == 'url("txt/dirt.png")')
+            {
+                eq.dirt++;
+                czasOczekiwania = 1000;
+            }
+
+            setTimeout(() => { bloki[yPointer][(xPointer * -1) + 9 + xGracza -4 ] = -1; renderowanie(); zaczecieKopania = false;}, czasOczekiwania);
+
+            console.log(eq.dirt);
+
+        }
 
     }
-
-
-
 
     while (true) {
         if (!upadek()) {break;}
     }
 
     generowanieSwiata();
+    yGracz = Math.round(yGracza);
     renderowanie();
 }
-function klikniecieMysza()
-{
-    const xClient = event.clientX;
-    const yClient = event.clientY;
-}
-
 //poStarcie
 for (var meow = 0; meow < 10; meow++) {
     generowanieSwiata(); 
-    //console.log('Start trawy ' + meow + ': ' + punktStartuTrawy);
     if (meow === 4) 
     {
         yGracza = punktStartuTrawy;
@@ -282,7 +307,6 @@ for (var y = 0; y < 10; y++)
 {
     bloki[y][3] = zrespBlok('txt/bedrock.png');
 }
-klawiszKlikniety();
 
 renderowanie();
 
