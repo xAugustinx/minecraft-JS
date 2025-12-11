@@ -6,6 +6,23 @@ var zaczecieKopania = false;
 
 var aktualneBloki = [];
 
+var wybranyBlokLiczba = 0;
+
+for (let y = 0; y < 10; y++) {
+    bloki[y] = [];
+    for (let x = 0; x < 10; x++) {
+        bloki[y][x] = -1;
+    }
+}
+
+
+
+var liczby = ['0','1','2','3','4','5','6','7','8','9'];
+
+var blokiWszystkie = ['dirt.png','coal.png','stone.png','grass.png']
+var iloscBlokow = [0,0,0,0];
+var czasWykopywaniaBlokow = [500, 2000, 2000, 500]
+
 class ekwipunek
 {
     constructor()
@@ -193,8 +210,9 @@ function upadek(mango)
     if (bloki[yGracza][xGracza] == -1)
     {
         for (var i = 0; i < 10; i++)                                                    //
-        {                                                                              //
-            setTimeout(() => { yGracza  = yGracza + 0.10; renderowanie();}, i * 10);    // czemu ten fragment crushuje strone
+        {                          
+            var czyKontynulowacSpadek = true;                                                    //
+            setTimeout(() => { if ( bloki[Math.trunc(yGracza)][xGracza] != -1) { czyKontynulowacSpadek = false;} if (czyKontynulowacSpadek) { yGracza  = yGracza + 0.10;}  renderowanie();}, i * 10);    // czemu ten fragment crushuje strone
         }                                                                                //  
         setTimeout(() => {yGracza = Math.round(yGracza); return true;}, 10 * 10);
     }
@@ -206,6 +224,13 @@ function czyBlokGraniczyZPowietrzem(y,x)
     if (bloki[y+1][x] == -1 || bloki[y-1][x] == -1 || bloki[y][x+1] == -1 || bloki[y][x-1] == -1){return true;}
     return false;
 }
+
+function czyBlokGraniczyZInnymBlokiem(y,x)
+{
+    if (bloki[y+1][x] != -1 || bloki[y-1][x] != -1 || bloki[y][x+1] != -1 || bloki[y][x-1] != -1){return true;}
+    return false;
+}
+
 
 function klawiszKlikniety()
 {
@@ -220,8 +245,13 @@ function klawiszKlikniety()
 
     if (event.key == 'a')  {  if (bloki[yGracza-1][xGracza -1] == -1 && bloki[yGracza-2][xGracza -1] == -1) {xGracza--;} usuwaniePointera();}
     else if (event.key == 'd')  { if (bloki[yGracza-1][xGracza +1] == -1 && bloki[yGracza-2][xGracza +1] == -1) {xGracza++;} usuwaniePointera(); }
-    else if (event.key == 'w' && activeJump == false) 
+
+    console.log(bloki[yGracza -3][xGracza]);
+    console.log(yGracza-3 + ' ' + xGracza);
+
+     if (event.key == 'w' && activeJump == false && bloki[yGracza -3][xGracza] == -1) 
     {
+        
         usuwaniePointera();
 
         activeJump = true;
@@ -257,37 +287,68 @@ function klawiszKlikniety()
         if (yPointer < 9 && obiektPointer.style.visibility !== 'hidden') {yPointer++;}
         zmienianiePozycjiPointera(yPointer, xPointer);
     }
-    else if (event.key == 'Enter' && czyBlokGraniczyZPowietrzem(yPointer,(xPointer * -1) + 9 + xGracza -4) )
+    else if (event.key == 'Enter'  )
     {
-        if (bloki[yPointer][(xPointer * -1) + 9 + xGracza -4 ] == -1)
+
+        //console.log(czyBlokGraniczyZInnymBlokiem(yPointer,(xPointer * -1) + 9 + xGracza -4));
+
+        console.log('o ten jest sprawdzany :' + bloki[yPointer][(xPointer * -1) + 9 + xGracza -4]  )
+
+        if (bloki[yPointer][(xPointer * -1) + 9 + xGracza -4 ] == -1 && zaczecieKopania === false && czyBlokGraniczyZInnymBlokiem(yPointer,(xPointer * -1) + 9 + xGracza -4)) //problematyczny fragment ostatni &&
         {
-            bloki[yPointer][(xPointer * -1) + 9 + xGracza -4 ] = zrespBlok('txt/dirt.png');
+            if (iloscBlokow[wybranyBlokLiczba] > 0)
+            {
+                iloscBlokow[wybranyBlokLiczba]--;
+
+                bloki[yPointer][(xPointer * -1) + 9 + xGracza -4 ] = zrespBlok('txt/' + blokiWszystkie[wybranyBlokLiczba]);
+            }
+
         }
-        else if (zaczecieKopania == false)
+        else if (zaczecieKopania == false && czyBlokGraniczyZPowietrzem(yPointer,(xPointer * -1) + 9 + xGracza -4))
         {
             zaczecieKopania = true;
 
             var czasOczekiwania = 0;
             
             console.log(bloki[yPointer][(xPointer * -1) + 9 + xGracza -4 ].style.backgroundImage);
+            
+            //tutaj
 
-            if (bloki[yPointer][(xPointer * -1) + 9 + xGracza -4 ].style.backgroundImage == 'url("txt/dirt.png")')
+            for (var licznik = 0; licznik < blokiWszystkie.length; licznik++)
             {
-                eq.dirt++;
-                czasOczekiwania = 1000;
-            }
+                var nameOf = 'url("txt/' + blokiWszystkie[licznik] + '")';
+                if (bloki[yPointer][(xPointer * -1) + 9 + xGracza -4 ].style.backgroundImage === nameOf )
+                {
+                    
+                    czasOczekiwania =  czasWykopywaniaBlokow[licznik];
 
-            setTimeout(() => { bloki[yPointer][(xPointer * -1) + 9 + xGracza -4 ] = -1; renderowanie(); zaczecieKopania = false;}, czasOczekiwania);
+                    iloscBlokow[licznik]++;
+                    
+                    var zapisanyTutajPointer = yPointer;
+                    var zapisanyTutajPointer2 = (xPointer * -1) + 9 + xGracza -4 ;
+
+
+                    setTimeout(() => { bloki[zapisanyTutajPointer][zapisanyTutajPointer2] = -1; renderowanie(); zaczecieKopania = false;}, czasOczekiwania);
+                    break;
+                }
+            }
 
             console.log(eq.dirt);
 
         }
+    }
+
+    for (var i = 0; i < 10; i++)
+    {
+        if (i < 6) {upadek();}
+
+        if (event.key === liczby[i])
+        {
+            wybranyBlokLiczba = parseInt(event.key);
+        }
 
     }
 
-    while (true) {
-        if (!upadek()) {break;}
-    }
 
     generowanieSwiata();
     yGracz = Math.round(yGracza);
