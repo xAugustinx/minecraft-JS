@@ -8,7 +8,14 @@ var aktualneBloki = [];
 
 var wybranyBlokLiczba = 0;
 
-for (let y = 0; y < 10; y++) {
+var wysokoscSwiataY = 30;
+
+var czyJestwTrakcieUpadku = false;
+var wartoscZwracanaPrzezUpadek = 0;
+
+
+
+for (let y = 0; y < wysokoscSwiataY; y++) {
     bloki[y] = [];
     for (let x = 0; x < 10; x++) {
         bloki[y][x] = -1;
@@ -17,24 +24,20 @@ for (let y = 0; y < 10; y++) {
 
 
 
+// X Od którego, y od którego i ktora czesc drzewa
+
+//ostatnie to Wysokosc Polozenia
+
+var drzewoGeneration = [ 0, 0, 0, 0];
+
+
 var liczby = ['0','1','2','3','4','5','6','7','8','9'];
 
-var blokiWszystkie = ['dirt.png','coal.png','stone.png','grass.png']
-var iloscBlokow = [0,0,0,0];
-var czasWykopywaniaBlokow = [500, 2000, 2000, 500]
+var blokiWszystkie = ['dirt.png','coal.png','stone.png','grass.png','wood.png','leav.png']
+var iloscBlokow = [0,0,0,0,0,0];
+var czasWykopywaniaBlokow = [500, 2000, 2000, 500,750,0]
 
-class ekwipunek
-{
-    constructor()
-    {
-        this.dirt = 0;
-        this.grass = 0;
-        this.stone = 0;
-        this.coal = 0;
-    }
-}
 
-var eq = new ekwipunek();
 
 
 const blokiObracalne = ['txt/dirt.png'];
@@ -137,6 +140,12 @@ function usuwaniePointera()
     yPointer = yGracza-1;
 }
 
+function czyUjemna(x)
+{
+    if (x < 0) {return true;}
+    return false;
+}
+
 
 function generowanieSwiata()
 {
@@ -145,7 +154,8 @@ function generowanieSwiata()
         bloki[i][xRenderowania] = -1;
     }
 
-    punktStartuTrawy = punktStartuTrawy + Math.floor(Math.random() * 4) - 2;
+    if (drzewoGeneration[2] <= 0 ) {punktStartuTrawy = punktStartuTrawy + Math.floor(Math.random() * 4) - 2; }
+    
 
     if (punktStartuTrawy > 8) {punktStartuTrawy = 7;}
     else if (punktStartuTrawy < 4 ) { punktStartuTrawy = 3; }
@@ -160,7 +170,7 @@ function generowanieSwiata()
     var czyStone = false;
     
 
-    for (var i = punktStartuTrawy+1; i < 10; i++)
+    for (var i = punktStartuTrawy+1; i < wysokoscSwiataY; i++)
     {
         if (i >= punktStone) 
         {
@@ -171,6 +181,35 @@ function generowanieSwiata()
         }
         else { bloki[i][xRenderowania] = zrespBlok('txt/dirt.png'); } 
     }
+
+
+    if (drzewoGeneration[2] <= 0 )
+    {
+        if (Math.floor(Math.random() * 100) < 4)
+        {
+            drzewoGeneration[2] = 4;
+            drzewoGeneration[3] = punktStartuTrawy -1 ;
+        }
+    }
+    else
+    {
+        var liczbaMango = 3;
+        if (drzewoGeneration[2] == 2)
+        {
+            bloki[ drzewoGeneration[3]][xRenderowania] = zrespBlok('txt/wood.png');
+            liczbaMango++;
+        }
+        for (var liscie = 1; liscie < liczbaMango; liscie++)
+        {
+            if (czyUjemna(drzewoGeneration[3] - liscie)) {break;}
+            bloki[ drzewoGeneration[3] - liscie][xRenderowania] = zrespBlok('txt/leav.png');
+        }
+    }
+
+
+
+    drzewoGeneration[2]--;
+
     xRenderowania++;
 }
 
@@ -195,15 +234,14 @@ function renderowanie()
 
 }
 
-document.addEventListener('keydown', klawiszKlikniety);
+document.addEventListener('keydown', function(event)  {
+    klawiszKlikniety(event.key, 0);
+});
 
 
 function upadek(mango)
 {
-    var sumerZmienna = 0;
-    if (mango === undefined) {sumerZmienna = 0;}
-    else {sumerZmienna = mango;}
-    
+
     yGracza = Math.round(yGracza);
     
 
@@ -214,47 +252,39 @@ function upadek(mango)
             var czyKontynulowacSpadek = true;                                                    //
             setTimeout(() => { if ( bloki[Math.trunc(yGracza)][xGracza] != -1) { czyKontynulowacSpadek = false;} if (czyKontynulowacSpadek) { yGracza  = yGracza + 0.10;}  renderowanie();}, i * 10);    // czemu ten fragment crushuje strone
         }                                                                                //  
-        setTimeout(() => {yGracza = Math.round(yGracza); return true;}, 10 * 10);
-    }
-    else { return false;}
+        setTimeout(() => {yGracza = Math.round(yGracza);  }, 10 * 10);
+    } 
 }
+
+var dSGB = [[0,1],[0,-1],[1,0],[-1,0]];
 
 function czyBlokGraniczyZPowietrzem(y,x)
-{
-    if (bloki[y+1][x] == -1 || bloki[y-1][x] == -1 || bloki[y][x+1] == -1 || bloki[y][x-1] == -1){return true;}
+{   
+    for (var meow = 0; meow < 4; meow++)
+    {
+        if ( y + dSGB[meow][0] < 0 || y + dSGB[meow][0] > wysokoscSwiataY - 1 || x + dSGB[meow][1] > xGracza + 5  ) {}
+        else if (bloki[y + dSGB[meow][0]  ] [x + dSGB[meow][1]] == -1)
+        {
+            return true;
+        }
+    }
     return false;
 }
-
 function czyBlokGraniczyZInnymBlokiem(y,x)
 {
-    if (bloki[y+1][x] != -1 || bloki[y-1][x] != -1 || bloki[y][x+1] != -1 || bloki[y][x-1] != -1){return true;}
+    for (var meow = 0; meow < 4; meow++)
+    {
+        if ( y + dSGB[meow][0] < 0 || y + dSGB[meow][0] > wysokoscSwiataY - 1 || x + dSGB[meow][1] > xGracza + 5  ) {}
+        else if (bloki[y + dSGB[meow][0]  ] [x + dSGB[meow][1]] != -1)
+        {
+            return true;
+        }
+    }
     return false;
 }
 
-
-function klawiszKlikniety()
+function skok()
 {
-
-    if (Math.floor(yGracza) != yGracza)
-    {
-        yGracz = Math.floor(yGracza) -1;
-    }
-
-
-    yGracza = Math.round(yGracza);
-
-    if (event.key == 'a')  {  if (bloki[yGracza-1][xGracza -1] == -1 && bloki[yGracza-2][xGracza -1] == -1) {xGracza--;} usuwaniePointera();}
-    else if (event.key == 'd')  { if (bloki[yGracza-1][xGracza +1] == -1 && bloki[yGracza-2][xGracza +1] == -1) {xGracza++;} usuwaniePointera(); }
-
-    console.log(bloki[yGracza -3][xGracza]);
-    console.log(yGracza-3 + ' ' + xGracza);
-
-     if (event.key == 'w' && activeJump == false && bloki[yGracza -3][xGracza] == -1) 
-    {
-        
-        usuwaniePointera();
-
-        activeJump = true;
         setTimeout(() => { activeJump = false; renderowanie();}, 11 * 30 + 10 * 10)
 
         for (var i = 0; i < 11; i++) 
@@ -265,52 +295,68 @@ function klawiszKlikniety()
         yGracza = Math.round(yGracza);
 
         setTimeout(() => {upadek(); renderowanie()}, 500);
+}
+
+function klawiszKlikniety(klawiszMeow, literacja)
+{
+
+    if (Math.floor(yGracza) != yGracza)
+    {yGracz = Math.floor(yGracza) -1;}
+
+
+    yGracza = Math.round(yGracza);
+
+    if (klawiszMeow == 'a')  {  if (bloki[yGracza-1][xGracza -1] == -1 && bloki[yGracza-2][xGracza -1] == -1) {xGracza--;} usuwaniePointera();}
+    else if (klawiszMeow == 'd')  { if (bloki[yGracza-1][xGracza +1] == -1 && bloki[yGracza-2][xGracza +1] == -1) {xGracza++;} usuwaniePointera(); }
+
+     if (klawiszMeow == 'w') 
+    {
+        usuwaniePointera();
+
+        if (yGracza -3 < 0) { skok(); }
+        else if (activeJump == false && bloki[yGracza -3][xGracza] == -1) {skok();}
     }
 
-    else if (event.key ==  'ArrowLeft')
+    else if (klawiszMeow ==  'ArrowLeft')
     {
         if (xPointer < 9 && obiektPointer.style.visibility !== 'hidden' ) {xPointer++;}
         zmienianiePozycjiPointera(yPointer, xPointer);
     }
-    else if (event.key == 'ArrowRight')
+    else if (klawiszMeow == 'ArrowRight')
     {
         if (xPointer > 0 && obiektPointer.style.visibility !== 'hidden') {xPointer--;}
         zmienianiePozycjiPointera(yPointer, xPointer);
     }
-    else if (event.key == 'ArrowUp')
+    else if (klawiszMeow == 'ArrowUp')
     {
         if (yPointer > 0 && obiektPointer.style.visibility !== 'hidden') {yPointer--;} 
         zmienianiePozycjiPointera(yPointer, xPointer);
     }
-    else if (event.key == 'ArrowDown')
+    else if (klawiszMeow == 'ArrowDown')
     {
         if (yPointer < 9 && obiektPointer.style.visibility !== 'hidden') {yPointer++;}
         zmienianiePozycjiPointera(yPointer, xPointer);
     }
-    else if (event.key == 'Enter'  )
+    else if (klawiszMeow == 'Enter'  )
     {
 
-        //console.log(czyBlokGraniczyZInnymBlokiem(yPointer,(xPointer * -1) + 9 + xGracza -4));
-
-        console.log('o ten jest sprawdzany :' + bloki[yPointer][(xPointer * -1) + 9 + xGracza -4]  )
-
-        if (bloki[yPointer][(xPointer * -1) + 9 + xGracza -4 ] == -1 && zaczecieKopania === false && czyBlokGraniczyZInnymBlokiem(yPointer,(xPointer * -1) + 9 + xGracza -4)) //problematyczny fragment ostatni &&
+        if (bloki[yPointer][(xPointer * -1) + 9 + xGracza -4 ] == -1 && zaczecieKopania === false ) //problematyczny fragment ostatni &&
         {
-            if (iloscBlokow[wybranyBlokLiczba] > 0)
+            if (czyBlokGraniczyZInnymBlokiem(yPointer,(xPointer * -1) + 9 + xGracza -4))
             {
-                iloscBlokow[wybranyBlokLiczba]--;
+                if (iloscBlokow[wybranyBlokLiczba] > 0 )
+                {
+                    iloscBlokow[wybranyBlokLiczba]--;
 
-                bloki[yPointer][(xPointer * -1) + 9 + xGracza -4 ] = zrespBlok('txt/' + blokiWszystkie[wybranyBlokLiczba]);
+                    bloki[yPointer][(xPointer * -1) + 9 + xGracza -4 ] = zrespBlok('txt/' + blokiWszystkie[wybranyBlokLiczba]);
+                }
             }
-
         }
         else if (zaczecieKopania == false && czyBlokGraniczyZPowietrzem(yPointer,(xPointer * -1) + 9 + xGracza -4))
         {
             zaczecieKopania = true;
 
             var czasOczekiwania = 0;
-            
-            console.log(bloki[yPointer][(xPointer * -1) + 9 + xGracza -4 ].style.backgroundImage);
             
             //tutaj
 
@@ -328,32 +374,51 @@ function klawiszKlikniety()
                     var zapisanyTutajPointer2 = (xPointer * -1) + 9 + xGracza -4 ;
 
 
-                    setTimeout(() => { bloki[zapisanyTutajPointer][zapisanyTutajPointer2] = -1; renderowanie(); zaczecieKopania = false;}, czasOczekiwania);
+                    setTimeout(() => { bloki[zapisanyTutajPointer][zapisanyTutajPointer2] = -1;  zaczecieKopania = false; sprawdzanieIleUpadku(); renderowanie();}, czasOczekiwania);
                     break;
                 }
             }
-
-            console.log(eq.dirt);
 
         }
     }
 
     for (var i = 0; i < 10; i++)
     {
-        if (i < 6) {upadek();}
-
-        if (event.key === liczby[i])
+        if (klawiszMeow === liczby[i])
         {
-            wybranyBlokLiczba = parseInt(event.key);
+            wybranyBlokLiczba = parseInt(klawiszMeow);
         }
-
     }
 
+    
+    
 
-    generowanieSwiata();
     yGracz = Math.round(yGracza);
+    sprawdzanieIleUpadku();
+    generowanieSwiata();
     renderowanie();
+
+    
+
 }
+
+
+function sprawdzanieIleUpadku()
+{
+    yGracz = Math.round(yGracza);
+    var iloscBlokowUpadku = 0;
+    while (true)
+    {
+
+        console.log('Ten Sprawdzamy' + yGracza + iloscBlokowUpadku + ' ' + xGracza)
+
+        if (bloki[yGracza + iloscBlokowUpadku ][xGracza] == -1)
+        {iloscBlokowUpadku++;}
+        else {break;}
+    }
+    for (var meow = 0; meow < iloscBlokowUpadku; meow++) {upadek();}
+}
+
 //poStarcie
 for (var meow = 0; meow < 10; meow++) {
     generowanieSwiata(); 
