@@ -14,6 +14,9 @@ var czyJestwTrakcieUpadku = false;
 var wartoscZwracanaPrzezUpadek = 0;
 
 
+var biome = Math.floor(Math.random() * 2 );
+
+
 
 for (let y = 0; y < wysokoscSwiataY; y++) {
     bloki[y] = [];
@@ -22,25 +25,26 @@ for (let y = 0; y < wysokoscSwiataY; y++) {
     }
 }
 
+var drzewoGeneration = [0, 0, 0, 0];
 
 
-// X Od którego, y od którego i ktora czesc drzewa
 
-//ostatnie to Wysokosc Polozenia
 
-var drzewoGeneration = [ 0, 0, 0, 0];
+var blokiWszystkie = ['dirt.png','coal.png','stone.png','grass.png','wood.png','leav.png','sand.png']
+var iloscBlokow = [0,0,0,0,0,0,0];
+var czasWykopywaniaBlokow = [500, 2000, 2000, 500,750,0,500]
+
+
+
+var eqBar = ['grass.png','dirt.png','coal.png','stone.png','wood.png','leav.png'];
+
+
 
 
 var liczby = ['0','1','2','3','4','5','6','7','8','9'];
 
-var blokiWszystkie = ['dirt.png','coal.png','stone.png','grass.png','wood.png','leav.png']
-var iloscBlokow = [0,0,0,0,0,0];
-var czasWykopywaniaBlokow = [500, 2000, 2000, 500,750,0]
 
-
-
-
-const blokiObracalne = ['txt/dirt.png'];
+const blokiObracalne = ['txt/dirt.png','txt/sand.png'];
 
 for (let y = 0; y < 10; y++) {
     bloki[y] = []; 
@@ -56,6 +60,18 @@ var yGracza;
 const obiektPointer = document.getElementById('pointer');
 var pointerX = 0;
 var pointerY = 0;
+
+function getIndexOf(z,b)
+{
+    for (var meow = 0; meow < z.length; meow++)
+    {
+        if (z[meow] == b)
+        {
+            return meow;
+        }
+    }
+    return -1;
+}
 
 
 function zrespBlok(source, y, x)
@@ -149,6 +165,16 @@ function czyUjemna(x)
 
 function generowanieSwiata()
 {
+    var blokiBiomow = ['txt/grass.png','txt/sand.png']
+    var blokiBiomow2 = ['txt/dirt.png','txt/sand.png']
+
+
+    if (Math.floor(Math.random() * 100) < 5)
+    {
+        biome = Math.floor(Math.random() * 2 );
+    }
+
+
     for (var i = 0; i < 10; i++)
     {
         bloki[i][xRenderowania] = -1;
@@ -165,7 +191,7 @@ function generowanieSwiata()
     var punktStone = punktStartuTrawy + 2 + Math.floor(Math.random() * 3);
 
 
-    bloki[punktStartuTrawy][xRenderowania] = zrespBlok('txt/grass.png');
+    bloki[punktStartuTrawy][xRenderowania] = zrespBlok(blokiBiomow[biome]);
 
     var czyStone = false;
     
@@ -179,13 +205,13 @@ function generowanieSwiata()
             if (losowaWartosc > 97) {bloki[i][xRenderowania] = zrespBlok('txt/coal.png');   }
             else {bloki[i][xRenderowania] = zrespBlok('txt/stone.png');}
         }
-        else { bloki[i][xRenderowania] = zrespBlok('txt/dirt.png'); } 
+        else { bloki[i][xRenderowania] = zrespBlok(blokiBiomow2[biome]); } 
     }
 
 
     if (drzewoGeneration[2] <= 0 )
     {
-        if (Math.floor(Math.random() * 100) < 4)
+        if (Math.floor(Math.random() * 100) < 4 && biome == 0)
         {
             drzewoGeneration[2] = 4;
             drzewoGeneration[3] = punktStartuTrawy -1 ;
@@ -340,7 +366,7 @@ function klawiszKlikniety(klawiszMeow, literacja)
     else if (klawiszMeow == 'Enter'  )
     {
 
-        if (bloki[yPointer][(xPointer * -1) + 9 + xGracza -4 ] == -1 && zaczecieKopania === false ) //problematyczny fragment ostatni &&
+        if (bloki[yPointer][(xPointer * -1) + 9 + xGracza -4 ] == -1 && zaczecieKopania === false ) 
         {
             if (czyBlokGraniczyZInnymBlokiem(yPointer,(xPointer * -1) + 9 + xGracza -4))
             {
@@ -387,6 +413,7 @@ function klawiszKlikniety(klawiszMeow, literacja)
         if (klawiszMeow === liczby[i])
         {
             wybranyBlokLiczba = parseInt(klawiszMeow);
+            wybranyBlokLiczba = getIndexOf(blokiWszystkie, eqBar[wybranyBlokLiczba])
         }
     }
 
@@ -409,9 +436,6 @@ function sprawdzanieIleUpadku()
     var iloscBlokowUpadku = 0;
     while (true)
     {
-
-        console.log('Ten Sprawdzamy' + yGracza + iloscBlokowUpadku + ' ' + xGracza)
-
         if (bloki[yGracza + iloscBlokowUpadku ][xGracza] == -1)
         {iloscBlokowUpadku++;}
         else {break;}
